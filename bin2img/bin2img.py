@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 import sys
 import math
+import os
 
 # pip install Pillow
 from PIL import (
@@ -11,18 +13,36 @@ from PIL import (
 )
 
 
+_execinfo = {
+    "name": os.path.basename(sys.argv[0]),
+    "dir" : os.path.dirname(sys.argv[0]),
+}
+
+
+_helpmsg = """\
+Syntax:
+{0} <directory>
+{0} <inputfile> <outputfile>
+""".format(_execinfo["name"])
+
+
+class FileData:
+    def __init__(self, infile, outfile):
+        self.infile = infile
+        self.outfile = outfile
+
+
 def determine_size(data):
     size = int(math.sqrt(len(data)) + 1)
     return size, size
 
 
 def getcolor(byteval):
-    color = (
+    return (
         ((byteval & 0xc0) >> 6) * 64,
         ((byteval & 0x38) >> 3) * 32,
         (byteval & 0x07) * 32,
     )
-    return color
 
 
 def bin2img(data):
@@ -33,31 +53,84 @@ def bin2img(data):
         i = 0
         for y in range(ysize):
             for x in range(xsize):
-                color = getcolor(data[i])
-                draw.point((x, y), fill=color)
+                draw.point((x, y), fill=getcolor(data[i]))
                 i += 1
     except IndexError:
         pass
     return img
 
 
+def wait():
+    print("Press Enter")
+    input()
+
+
+def error(msg):
+    print(msg, file=sys.stderr)
+    wait()
+    sys.exit(1)
+
+
 def parse_cmdargs(args):
-    infile = args[1]
-    outfile = args[2]
-    return infile, outfile
+    if len(args) == 2:
+        dir = args[1]
+        if not os.path.isdir(dir):
+            error('Given argument "{}" must be a directory'.format(dir))
+
+        filepaths = (os.path.join(dir, file) for file in os.listdir(dir))
+        files = []
+        for file in filepaths:
+            if os.path.isfile(file):
+                outdir = os.path.join(_execinfo["dir"], "output")
+                if not os.path.exists(outdir):
+                    os.mkdir(outdir)
+                outfile = os.path.join(outdir, os.path.basename(file) + ".png")
+                files.append(FileData(file, outfile))
+        if not files:
+            error('Given directory "{}" must contain files'.format(dir))
+
+        return files
+
+    elif len(args) == 3:
+        infile = args[1]
+        outfile = args[2]
+
+        inisfile = os.path.isfile(infile)
+        outisfile = os.path.isfile(outfile)
+        if not inisfile and not outisfile:
+            error('Both arguments "{}" and "{}" are not files'.format(infile, outfile))
+        if not inisfile:
+            error('First argument "{}" is not a file'.format(infile))
+        if not outisfile:
+            error('Second argument "{}" is not a file'.format(outfile))
+
+        return [FileData(infile, outfile)]
+
+    else:
+        error(_helpmsg)
+
+
+def generate_image(infile):
+    with open(infile, "rb") as f:
+        data = f.read()
+    img = bin2img(data)
+    return img
 
 
 def main(args):
-    infile, outfile = parse_cmdargs(args)
-    with open(infile, "rb") as f:
-        data = f.read()
-    print("File read")
+    try:
+        files = parse_cmdargs(args)
+        for file in files:
+            infile = file.infile
+            outfile = file.outfile
 
-    img = bin2img(data)
-    print("Image generated")
+            img = generate_image(infile)
+            print('Image generated from "{}"'.format(infile))
 
-    img.save(outfile, "PNG", compress_level=9)
-    print('Image stored at "{}"'.format(outfile))
+            img.save(outfile, "PNG", compress_level=9)
+            print('Image stored at "{}"'.format(outfile))
+    finally:
+        wait()
 
 
 if __name__ == "__main__":

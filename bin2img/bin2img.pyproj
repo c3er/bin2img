@@ -13,7 +13,7 @@
     <Name>bin2img</Name>
     <RootNamespace>bin2img</RootNamespace>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <CommandLineArguments>"D:\eigene dateien\devel\python\bin2img\testdata\test.exe" "D:\eigene dateien\devel\python\bin2img\testdata\test.png"</CommandLineArguments>
+    <CommandLineArguments>"D:\eigene dateien\devel\python\bin2img\testdata"</CommandLineArguments>
     <EnableNativeCodeDebugging>False</EnableNativeCodeDebugging>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
