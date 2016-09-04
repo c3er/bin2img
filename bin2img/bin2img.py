@@ -39,9 +39,9 @@ def determine_size(data):
 
 def getcolor(byteval):
     return (
-        ((byteval & 0xc0) >> 6) * 64,
-        ((byteval & 0x38) >> 3) * 32,
-        (byteval & 0x07) * 32,
+        ((byteval & 0o300) >> 6) * 64,
+        ((byteval & 0o070) >> 3) * 32,
+        (byteval & 0o007) * 32,
     )
 
 
@@ -113,8 +113,7 @@ def parse_cmdargs(args):
 def generate_image(infile):
     with open(infile, "rb") as f:
         data = f.read()
-    img = bin2img(data)
-    return img
+    return bin2img(data)
 
 
 def main(args):
