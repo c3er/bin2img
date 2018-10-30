@@ -2,6 +2,14 @@
 # -*- coding: utf-8 -*-
 
 
+"""Tool to transform any binary file to a PNG image
+
+Syntax:
+bin2img.py <directory>
+bin2img.py <inputfile> <outputfile>
+"""
+
+
 import sys
 import math
 import os
@@ -11,19 +19,6 @@ from PIL import (
     Image,
     ImageDraw,
 )
-
-
-_execinfo = {
-    "name": os.path.basename(sys.argv[0]),
-    "dir" : os.path.dirname(sys.argv[0]),
-}
-
-
-_helpmsg = """\
-Syntax:
-{0} <directory>
-{0} <inputfile> <outputfile>
-""".format(_execinfo["name"])
 
 
 class FileData:
@@ -75,7 +70,7 @@ def parse_cmdargs(args):
         files = []
         for file in filepaths:
             if os.path.isfile(file):
-                outdir = os.path.join(_execinfo["dir"], "output")
+                outdir = os.path.join(os.path.dirname(args[0]), "output")
                 if not os.path.exists(outdir):
                     os.mkdir(outdir)
                 outfile = os.path.join(outdir, os.path.basename(file) + ".png")
@@ -101,7 +96,7 @@ def parse_cmdargs(args):
         return [FileData(infile, outfile)]
 
     else:
-        error(_helpmsg)
+        error(__doc__)
 
 
 def generate_image(infile):
