@@ -84,14 +84,10 @@ def parse_cmdargs(args):
         infile = args[1]
         outfile = args[2]
 
-        inisfile = os.path.isfile(infile)
-        outisfile = os.path.isfile(outfile)
-        if not inisfile and not outisfile:
-            error('Both arguments "{}" and "{}" are not files'.format(infile, outfile))
-        if not inisfile:
-            error('First argument "{}" is not a file'.format(infile))
-        if not outisfile:
-            error('Second argument "{}" is not a file'.format(outfile))
+        if not os.path.isfile(infile):
+            error(f'First argument "{infile}" is not a file')
+        if os.path.exists(outfile):
+            error(f'File "{outfile}" exists already')
 
         return [FileData(infile, outfile)]
 
