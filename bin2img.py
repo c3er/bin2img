@@ -60,14 +60,8 @@ def bin2img(data):
     return img
 
 
-def wait():
-    print("Press Enter")
-    input()
-
-
 def error(msg):
     print(msg, file=sys.stderr)
-    wait()
     sys.exit(1)
 
 
@@ -117,19 +111,16 @@ def generate_image(infile):
 
 
 def main(args):
-    try:
-        files = parse_cmdargs(args)
-        for file in files:
-            infile = file.infile
-            outfile = file.outfile
+    files = parse_cmdargs(args)
+    for file in files:
+        infile = file.infile
+        outfile = file.outfile
 
-            img = generate_image(infile)
-            print('Image generated from "{}"'.format(infile))
+        img = generate_image(infile)
+        print('Image generated from "{}"'.format(infile))
 
-            img.save(outfile, "PNG", compress_level=9)
-            print('Image stored at "{}"'.format(outfile))
-    finally:
-        wait()
+        img.save(outfile, "PNG", compress_level=9)
+        print('Image stored at "{}"'.format(outfile))
 
 
 if __name__ == "__main__":
