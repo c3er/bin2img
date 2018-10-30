@@ -64,19 +64,23 @@ def parse_cmdargs(args):
     if len(args) == 2:
         dir = args[1]
         if not os.path.isdir(dir):
-            error('Given argument "{}" must be a directory'.format(dir))
+            error(f'Given argument "{dir}" must be a directory')
 
-        filepaths = (os.path.join(dir, file) for file in os.listdir(dir))
+        filepaths = [
+            os.path.join(dir, file)
+            for file in os.listdir(dir)
+            if os.path.isfile(os.path.join(dir, file))
+        ]
+        if not filepaths:
+            error(f'Given directory "{dir}" must contain files')
+
         files = []
         for file in filepaths:
-            if os.path.isfile(file):
-                outdir = os.path.join(os.path.dirname(args[0]), "output")
-                if not os.path.exists(outdir):
-                    os.mkdir(outdir)
-                outfile = os.path.join(outdir, os.path.basename(file) + ".png")
-                files.append(FileData(file, outfile))
-        if not files:
-            error('Given directory "{}" must contain files'.format(dir))
+            outdir = os.path.join(os.path.dirname(args[0]), "output")
+            if not os.path.exists(outdir):
+                os.mkdir(outdir)
+            outfile = os.path.join(outdir, f"{os.path.basename(file)}.png")
+            files.append(FileData(file, outfile))
 
         return files
 
@@ -108,10 +112,10 @@ def main(args):
         outfile = file.outfile
 
         img = generate_image(infile)
-        print('Image generated from "{}"'.format(infile))
+        print(f'Image generated from "{infile}"')
 
         img.save(outfile, "PNG", compress_level=9)
-        print('Image stored at "{}"'.format(outfile))
+        print(f'Image stored at "{outfile}"')
 
 
 if __name__ == "__main__":
