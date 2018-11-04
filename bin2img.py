@@ -51,7 +51,7 @@ def getcolor(byteval):
 
 def bin2img(data):
     xsize, ysize = size = determine_size(data)
-    img = Image.new("RGB", size)
+    img = Image.new("RGB", size, color=(255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
     try:
         i = 0
