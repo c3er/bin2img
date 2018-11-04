@@ -5,8 +5,17 @@
 """Tool to transform any binary file to a PNG image
 
 Syntax:
-bin2img.py <directory>
-bin2img.py <inputfile> <outputfile>
+bin2img.py <file or directory>
+bin2img.py <input file or directory> <output file or directory>
+
+If only a file is given, an image file named <file name>.png will be generated
+in the same directory as the file.
+
+If the only argument is a directory, all the files in this directory will be
+transformed in a directory named <directory name>_images alongside the given
+input directory.
+
+Behavior with two arguments is similar but with user determined output path.
 """
 
 
@@ -60,41 +69,57 @@ def error(msg):
     sys.exit(1)
 
 
+def build_dirpaths(indir, outdir):
+    file_inputs = [
+        os.path.join(indir, file)
+        for file in os.listdir(indir)
+        if os.path.isfile(os.path.join(indir, file))
+    ]
+    if not file_inputs:
+        error(f'Given directory "{indir}" must contain files')
+    os.makedirs(outdir, exist_ok=True)
+    files = [
+        FileData(file, os.path.join(outdir, f"{os.path.basename(file)}.png"))
+        for file in file_inputs
+    ]
+    return files
+
+
 def parse_cmdargs(args):
+    if len(args) >= 2:
+        input = args[1].strip()
+        if not os.path.exists(input):
+            error(f'File or directory "{input}" does not exist')
+        if not os.path.isdir(input) and not os.path.isfile(input):
+            error(f'"{input}" could neither be recognized as file nor as directory')
+
     if len(args) == 2:
-        dir = args[1]
-        if not os.path.isdir(dir):
-            error(f'Given argument "{dir}" must be a directory')
-
-        filepaths = [
-            os.path.join(dir, file)
-            for file in os.listdir(dir)
-            if os.path.isfile(os.path.join(dir, file))
-        ]
-        if not filepaths:
-            error(f'Given directory "{dir}" must contain files')
-
-        files = []
-        for file in filepaths:
-            outdir = os.path.join(os.path.dirname(args[0]), "output")
-            if not os.path.exists(outdir):
-                os.mkdir(outdir)
-            outfile = os.path.join(outdir, f"{os.path.basename(file)}.png")
-            files.append(FileData(file, outfile))
-
-        return files
+        if os.path.isdir(input):
+            if input[-1] in ("/", "\\"):
+                input = input[:-1]
+            outdir = os.path.join(
+                os.path.dirname(input),
+                f"{os.path.basename(input)}_images")
+            return build_dirpaths(input, outdir)
+        else:
+            outfile = os.path.join(
+                os.path.dirname(input),
+                f"{os.path.basename(input)}.png")
+            return [FileData(input, outfile)]
 
     elif len(args) == 3:
-        infile = args[1]
-        outfile = args[2]
+        output = args[2]
 
-        if not os.path.isfile(infile):
-            error(f'First argument "{infile}" is not a file')
-        if os.path.exists(outfile):
-            error(f'File "{outfile}" exists already')
+        if os.path.exists(output):
+            if os.path.isdir(input) and not os.path.isdir(output):
+                error(f'Input "{input}" is a directory but not output "{output}"')
+            elif os.path.isfile(input) and not os.path.isfile(output):
+                error(f'Input "{input}" is a file but not output "{output}"')
 
-        return [FileData(infile, outfile)]
-
+        if os.path.isdir(input):
+            return build_dirpaths(input, output)
+        else:
+            return [FileData(input, output)]
     else:
         error(__doc__)
 
