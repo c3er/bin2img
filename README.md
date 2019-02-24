@@ -43,6 +43,10 @@ Behavior with two arguments is similar but with user determined output path.
 
 ![ProcExp image](examples/procexp.exe.png)
 
+### [Putty](https://www.putty.org/) in shades of Grey
+
+![Putty image](examples/putty.exe_grey.png)
+
 ## Notes
 
 [miku](https://github.com/miku) implemented a [similar tool "binpic"](https://github.com/miku/binpic) inspired by this tool and implemented in [the Go language](https://golang.org/)

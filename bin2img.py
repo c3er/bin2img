@@ -2,11 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-"""Tool to transform any binary file to a PNG image
-
-Syntax:
-bin2img.py <file or directory>
-bin2img.py <input file or directory> <output file or directory>
+"""Tool to transform any binary file to a PNG image.
 
 If only a file is given, an image file named <file name>.png will be generated
 in the same directory as the file.
@@ -19,9 +15,10 @@ Behavior with two arguments is similar but with user determined output path.
 """
 
 
-import sys
+import argparse
 import math
 import os
+import sys
 
 # pip install Pillow
 from PIL import (
@@ -41,7 +38,7 @@ def determine_size(data):
     return size, size
 
 
-def getcolor(byteval):
+def calccolor(byteval):
     return (
         ((byteval & 0o300) >> 6) * 64,
         ((byteval & 0o070) >> 3) * 32,
@@ -49,7 +46,12 @@ def getcolor(byteval):
     )
 
 
-def bin2img(data):
+def calcgrayshade(byteval):
+    return byteval, byteval, byteval
+
+
+def bin2img(data, isgrey):
+    colorfunc = calcgrayshade if isgrey else calccolor
     xsize, ysize = size = determine_size(data)
     img = Image.new("RGB", size, color=(255, 255, 255, 0))
     draw = ImageDraw.Draw(img)
@@ -57,7 +59,7 @@ def bin2img(data):
         i = 0
         for y in range(ysize):
             for x in range(xsize):
-                draw.point((x, y), fill=getcolor(data[i]))
+                draw.point((x, y), fill=colorfunc(data[i]))
                 i += 1
     except IndexError:
         pass
@@ -85,31 +87,23 @@ def build_dirpaths(indir, outdir):
     return files
 
 
-def parse_cmdargs(args):
-    if len(args) >= 2:
-        input = args[1].strip()
-        if not os.path.exists(input):
-            error(f'File or directory "{input}" does not exist')
-        if not os.path.isdir(input) and not os.path.isfile(input):
-            error(f'"{input}" could neither be recognized as file nor as directory')
+def parse_cmdargs():
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        usage="Type %(prog)s [--help] [--grey] input [output]")
+    parser.add_argument("input", help="Input file or directory")
+    parser.add_argument("output", nargs="?", help="Output file or directory")
+    parser.add_argument(
+        "-g",
+        "--grey",
+        action="store_true",
+        dest="isgrey",
+        help="Generate images in shades of grey instead of using colors")
+    args = parser.parse_args()
 
-    if len(args) == 2:
-        if os.path.isdir(input):
-            if input[-1] in ("/", "\\"):
-                input = input[:-1]
-            outdir = os.path.join(
-                os.path.dirname(input),
-                f"{os.path.basename(input)}_images")
-            return build_dirpaths(input, outdir)
-        else:
-            outfile = os.path.join(
-                os.path.dirname(input),
-                f"{os.path.basename(input)}.png")
-            return [FileData(input, outfile)]
-
-    elif len(args) == 3:
-        output = args[2]
-
+    input = args.input
+    output = args.output
+    if output:
         if os.path.exists(output):
             if os.path.isdir(input) and not os.path.isdir(output):
                 error(f'Input "{input}" is a directory but not output "{output}"')
@@ -117,26 +111,38 @@ def parse_cmdargs(args):
                 error(f'Input "{input}" is a file but not output "{output}"')
 
         if os.path.isdir(input):
-            return build_dirpaths(input, output)
+            files = build_dirpaths(input, output)
         else:
-            return [FileData(input, output)]
+            files = [FileData(input, output)]
+    elif os.path.isdir(input):
+        if input[-1] in ("/", "\\"):
+            input = input[:-1]
+        outdir = os.path.join(
+            os.path.dirname(input),
+            f"{os.path.basename(input)}_images")
+        files = build_dirpaths(input, outdir)
     else:
-        error(__doc__)
+        outfile = os.path.join(
+            os.path.dirname(input),
+            f"{os.path.basename(input)}.png")
+        files = [FileData(input, outfile)]
+
+    return files, args.isgrey
 
 
-def generate_image(infile):
+def generate_image(infile, isgrey):
     with open(infile, "rb") as f:
         data = f.read()
-    return bin2img(data)
+    return bin2img(data, isgrey)
 
 
-def main(args):
-    files = parse_cmdargs(args)
+def main():
+    files, isgrey = parse_cmdargs()
     for file in files:
         infile = file.infile
         outfile = file.outfile
 
-        img = generate_image(infile)
+        img = generate_image(infile, isgrey)
         print(f'Image generated from "{infile}"')
 
         img.save(outfile, "PNG", compress_level=9)
@@ -144,4 +150,4 @@ def main(args):
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    main()
