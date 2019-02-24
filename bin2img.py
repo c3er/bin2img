@@ -137,16 +137,19 @@ def generate_image(infile, isgrey):
 
 
 def main():
-    files, isgrey = parse_cmdargs()
-    for file in files:
-        infile = file.infile
-        outfile = file.outfile
+    try:
+        files, isgrey = parse_cmdargs()
+        for file in files:
+            infile = file.infile
+            outfile = file.outfile
 
-        img = generate_image(infile, isgrey)
-        print(f'Image generated from "{infile}"')
+            img = generate_image(infile, isgrey)
+            print(f'Image generated from "{infile}"')
 
-        img.save(outfile, "PNG", compress_level=9)
-        print(f'Image stored at "{outfile}"')
+            img.save(outfile, "PNG", compress_level=9)
+            print(f'Image stored at "{outfile}"')
+    except KeyboardInterrupt:
+        print("Interrupted")
 
 
 if __name__ == "__main__":
