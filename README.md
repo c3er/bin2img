@@ -33,6 +33,14 @@ input directory.
 
 Behavior with two arguments is similar but with user determined output path.
 
+The default is to produce colored images. To get greyscale images, add the option `-g` (or `--grey`) to the call:
+
+```
+$ bin2img.py <file or directory> -g
+```
+
+Whether the `-g` flag is before or after the file(s) does not matter.
+
 ## Examples
 
 ### [Putty](https://www.putty.org/)
