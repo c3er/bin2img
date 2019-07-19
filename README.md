@@ -9,7 +9,7 @@ Python 3.6 or higher is needed.
 Additionally, the library "Pillow" is needed. To install it, type:
 
 ```
-$ pip3 install -r requirments.txt
+$ pip3 install -r requirements.txt
 ```
 
 ## Usage
